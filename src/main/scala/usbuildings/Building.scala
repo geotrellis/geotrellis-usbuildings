@@ -17,7 +17,8 @@ import scala.collection.JavaConverters._
   */
 case class Building(file: String, idx: Int)(
   val footprint: Polygon,
-  val histogram: Option[Histogram[Double]] = None
+  val histogram: Option[Histogram[Double]] = None,
+  val errors: List[String] = List[String]()
 ) {
   def id: (String, Int) = (file, idx)
 
@@ -25,17 +26,21 @@ case class Building(file: String, idx: Int)(
     val attributes = for {
       hist <- histogram
       (min, max) <- hist.minMaxValues()
-    } yield Map("elevation_min" -> vectortile.VDouble(min), "elecation_max" -> vectortile.VDouble(max))
+    } yield Map("elevation_min" -> vectortile.VDouble(min), "elevation_max" -> vectortile.VDouble(max), "errors" -> vectortile.VString(errors.mkString(", ")))
 
     Feature(footprint, attributes.getOrElse(Map.empty))
   }
 
+  def withError(err: String): Building = {
+    copy()(footprint, histogram, errors ++ List(err))
+  }
+
   def withHistogram(hist: Histogram[Double]): Building = {
-    copy()(footprint, Some(hist))
+    copy()(footprint, Some(hist), errors)
   }
 
   def withFootprint(poly: Polygon): Building = {
-    copy()(poly, histogram)
+    copy()(poly, histogram, errors)
   }
 
   def mergeHistograms(other: Building): Building = {
