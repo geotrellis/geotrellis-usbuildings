@@ -23,12 +23,12 @@ case class Building(file: String, idx: Int)(
   def id: (String, Int) = (file, idx)
 
   def toVectorTileFeature: Feature[Polygon, Map[String, vectortile.Value]] = {
-    val attributes = for {
+    val attributes = Map("errors" -> vectortile.VString(errors.mkString(", ")))
+    val histAttributes = for {
       hist <- histogram
       (min, max) <- hist.minMaxValues()
-    } yield Map("elevation_min" -> vectortile.VDouble(min), "elevation_max" -> vectortile.VDouble(max), "errors" -> vectortile.VString(errors.mkString(", ")))
-
-    Feature(footprint, attributes.getOrElse(Map.empty))
+    } yield Map("elevation_min" -> vectortile.VDouble(min), "elevation_max" -> vectortile.VDouble(max))
+    Feature(footprint, attributes ++ histAttributes.getOrElse(Map.empty))
   }
 
   def withError(err: String): Building = {
