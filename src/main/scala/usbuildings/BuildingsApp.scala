@@ -59,7 +59,7 @@ class BuildingsApp(
                   polygon = building.footprint,
                   handler = CustomDoubleHistogramSummary)
 
-              (building.id, building.withHistogram(hist))
+              (building.id, building.withHistogram(Some(hist)))
             }
           }
         }

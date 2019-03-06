@@ -35,8 +35,11 @@ case class Building(file: String, idx: Int)(
     copy()(footprint, histogram, errors ++ List(err))
   }
 
-  def withHistogram(hist: Histogram[Double]): Building = {
-    copy()(footprint, Some(hist), errors)
+  def withHistogram(hist: Option[Histogram[Double]]): Building = {
+    if (!histogram.isEmpty && hist.isEmpty) {
+      print(s"WARNING: Overwriting with empty histogram for ($file, $idx)")
+    }
+    copy()(footprint, hist, errors)
   }
 
   def withFootprint(poly: Polygon): Building = {
@@ -49,7 +52,7 @@ case class Building(file: String, idx: Int)(
       val mergedHist = for (h1 <- histogram; h2 <- other.histogram) yield h1 merge h2
       mergedHist.orElse(histogram).orElse(other.histogram)
     }
-    withHistogram(hist.get)
+    withHistogram(hist)
   }
 }
 
