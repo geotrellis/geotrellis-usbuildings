@@ -1,0 +1,17 @@
+version: '2.3'
+services:
+  us-buildings:
+    image: quay.io/azavea/openjdk-gdal:2.3.2-jdk8-slim
+    environment:
+      - AWS_PROFILE=geotrellis
+      - BINTRAY_USER=$BINTRAY_USER
+      - BINTRAY_PASS=$BINTRAY_PASS
+    volumes:
+      - ./:/opt/geotrellis-gdal
+      - $HOME/.aws:/root/.aws
+      - $HOME/tmp:/root/tmp
+      - $HOME/.ivy2:/root/.ivy2
+      - $HOME/.sbt:/root/.sbt
+      - $HOME/.coursier:/root/.coursier
+    working_dir: /opt/geotrellis-gdal
+    entrypoint: ./sbt 
