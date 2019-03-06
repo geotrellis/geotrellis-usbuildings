@@ -19,8 +19,13 @@
 var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/light-v9',
-    zoom: 12,
-    center: [-73.2121, 44.4759]
+    zoom: 15,
+    center: [-79.9998879185631, 40.44117188556086]
+});
+
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
 });
 
 map.on('load', function() {
@@ -28,38 +33,50 @@ map.on('load', function() {
     // https://www.mapillary.com/developer/tiles-documentation/#sequence-layer
     map.addLayer({
         "id": "mapillary",
-        "type": "line",
+        "type": "fill",
         "source": {
             "type": "vector",
-            "tiles": ["https://s3.amazonaws.com/geotrellis-test/usbuildings/afinkmiller-spark-ri01/{z}/{x}/{y}.mvt"],
+            "tiles": ["https://s3.amazonaws.com/geotrellis-test/usbuildings/afinkmiller-spark-pa01/{z}/{x}/{y}.mvt"],
             "minzoom": 15,
             "maxzoom": 15
         },
         "source-layer": "buildings",
-        "layout": {
-            "line-cap": "round",
-            "line-join": "round"
-        },
         "paint": {
-            "line-opacity": 0.6,
-            "line-color": [
+            "fill-opacity": 0.2,
+            "fill-color": [
                 "match",
                 ["get", "errors"],
                 "", "rgb(53, 175, 109)",
                 "red"
-            ],
-            "line-width": 2
+            ]
         }
     }, 'waterway-label');
 });
 
-map.on("mousemove", "mapillary", function(e) {
-    var osm_info = {
-      "min": e.features[0].properties["elevation_min"],
-      "max": e.features[0].properties["elevation_max"]
+map.on("mouseenter", "mapillary", function(e) {
+    map.getCanvas().style.cursor = 'pointer';
+    if (e.features && e.features[0] && e.features[0].properties) {
+        var feature = e.features[0];
+        var props = feature.properties;
+        var osm_info = {
+            "min": props["elevation_min"],
+            "max": props["elevation_max"]
+        };
+        if (props.errors) {
+            osm_info["errors"] = props["errors"]
+            var coordinates = feature.geometry.coordinates[0][0].slice();
+            popup.setLngLat(coordinates);
+            popup.setHTML(props["errors"]);
+            popup.addTo(map);
+        }
+        console.log(osm_info)
     }
-    console.log(e.features[0].properties, osm_info)
-  });
+});
+
+map.on("mouseleave", "mapillary", function (e) {
+    map.getCanvas().style.cursor = '';
+    popup.remove();
+});
 
 map.addControl(new mapboxgl.NavigationControl());
 </script>
