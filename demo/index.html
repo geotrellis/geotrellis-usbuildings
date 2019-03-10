@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Add a third party vector tile source</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.52.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='./access-token.js' type="text/javascript"></script>
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v9',
+    zoom: 15,
+    center: [-79.9998879185631, 40.44117188556086]
+});
+
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
+
+map.on('load', function() {
+    // Add Mapillary sequence layer.
+    // https://www.mapillary.com/developer/tiles-documentation/#sequence-layer
+    map.addLayer({
+        "id": "mapillary",
+        "type": "fill",
+        "source": {
+            "type": "vector",
+            "tiles": ["https://s3.amazonaws.com/geotrellis-test/usbuildings/afinkmiller-spark-pa02/{z}/{x}/{y}.mvt"],
+            "minzoom": 15,
+            "maxzoom": 15
+        },
+        "source-layer": "buildings",
+        "paint": {
+            "fill-opacity": 0.2,
+            "fill-color": [
+                "match",
+                ["get", "errors"],
+                "", "rgb(53, 175, 109)",
+                "red"
+            ]
+        }
+    }, 'waterway-label');
+});
+
+map.on("mouseenter", "mapillary", function(e) {
+    map.getCanvas().style.cursor = 'pointer';
+    if (e.features && e.features[0] && e.features[0].properties) {
+        var feature = e.features[0];
+        var props = feature.properties;
+        var osm_info = {
+            "min": props["elevation_min"],
+            "max": props["elevation_max"]
+        };
+        if (props.errors) {
+            osm_info["errors"] = props["errors"]
+            var coordinates = feature.geometry.coordinates[0][0].slice();
+            popup.setLngLat(coordinates);
+            popup.setHTML(props["errors"]);
+            popup.addTo(map);
+        }
+        console.log(osm_info)
+    }
+});
+
+map.on("mouseleave", "mapillary", function (e) {
+    map.getCanvas().style.cursor = '';
+    popup.remove();
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+</script>
+
+</body>
+</html>

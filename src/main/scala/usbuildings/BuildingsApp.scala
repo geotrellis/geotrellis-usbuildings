@@ -2,6 +2,7 @@ package usbuildings
 
 import java.net.URL
 
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
 import geotrellis.proj4.{LatLng, WebMercator}
 import geotrellis.raster.summary.polygonal.{DoubleHistogramSummary, MaxSummary}
@@ -44,20 +45,23 @@ class BuildingsApp(
       val histPerTile =
         for {
           (tileKey, buildings) <- buildingsPartition.toArray.groupBy(_._1)
-          rasterSource = Terrain.getRasterSource(tileKey)
-          _ <- Try(rasterSource.extent).toOption.toList // filter out tiles that are not there
-          // it is three times slower to read the full tile vs just intersecting pixels
-          //raster <- rasterSource.read(tileKey.extent(Terrain.terrainTilesSkadiGrid)).toList
+          rasterSource = Either.catchNonFatal(Terrain.getRasterSource(tileKey))
           (_, building) <- buildings
-          raster <- rasterSource.read(building.footprint.envelope)
+          maybeRaster = rasterSource.flatMap(rs => Either.catchNonFatal(rs.read(building.footprint.envelope)))
         } yield {
-          val hist = raster.tile.band(bandIndex = 0)
-            .polygonalSummary(
-              extent = raster.extent,
-              polygon = building.footprint,
-              handler = CustomDoubleHistogramSummary)
+          maybeRaster match {
+            case Left(e: Throwable) => (building.id, building.withError(e.toString))
+            case Right(None) => (building.id, building.withError("Envelope not in RasterSource extent"))
+            case Right(Some(raster)) => {
+              val hist = raster.tile.band(bandIndex = 0)
+                .polygonalSummary(
+                  extent = raster.extent,
+                  polygon = building.footprint,
+                  handler = CustomDoubleHistogramSummary)
 
-          (building.id, building.withHistogram(hist))
+              (building.id, building.withHistogram(Some(hist)))
+            }
+          }
         }
 
       histPerTile.groupBy(_._1).mapValues(_.values.reduce(_ mergeHistograms  _)).toIterator

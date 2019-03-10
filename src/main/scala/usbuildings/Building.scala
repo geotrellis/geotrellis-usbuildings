@@ -17,25 +17,33 @@ import scala.collection.JavaConverters._
   */
 case class Building(file: String, idx: Int)(
   val footprint: Polygon,
-  val histogram: Option[Histogram[Double]] = None
+  val histogram: Option[Histogram[Double]] = None,
+  val errors: List[String] = List[String]()
 ) {
   def id: (String, Int) = (file, idx)
 
   def toVectorTileFeature: Feature[Polygon, Map[String, vectortile.Value]] = {
-    val attributes = for {
+    val attributes = Map("errors" -> vectortile.VString(errors.mkString(", ")))
+    val histAttributes = for {
       hist <- histogram
       (min, max) <- hist.minMaxValues()
-    } yield Map("elevation_min" -> vectortile.VDouble(min), "elecation_max" -> vectortile.VDouble(max))
-
-    Feature(footprint, attributes.getOrElse(Map.empty))
+    } yield Map("elevation_min" -> vectortile.VDouble(min), "elevation_max" -> vectortile.VDouble(max))
+    Feature(footprint, attributes ++ histAttributes.getOrElse(Map.empty))
   }
 
-  def withHistogram(hist: Histogram[Double]): Building = {
-    copy()(footprint, Some(hist))
+  def withError(err: String): Building = {
+    copy()(footprint, histogram, errors ++ List(err))
+  }
+
+  def withHistogram(hist: Option[Histogram[Double]]): Building = {
+    if (!histogram.isEmpty && hist.isEmpty) {
+      print(s"WARNING: Overwriting with empty histogram for ($file, $idx)")
+    }
+    copy()(footprint, hist, errors)
   }
 
   def withFootprint(poly: Polygon): Building = {
-    copy()(poly, histogram)
+    copy()(poly, histogram, errors)
   }
 
   def mergeHistograms(other: Building): Building = {
@@ -44,7 +52,7 @@ case class Building(file: String, idx: Int)(
       val mergedHist = for (h1 <- histogram; h2 <- other.histogram) yield h1 merge h2
       mergedHist.orElse(histogram).orElse(other.histogram)
     }
-    withHistogram(hist.get)
+    withHistogram(hist)
   }
 }
 

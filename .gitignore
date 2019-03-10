@@ -1,8 +1,3 @@
-index.html
-index.js
-package.html
-lib
-site/
 docs/_build/
 .cluster_id
 
@@ -35,9 +30,6 @@ _SUCCESS
 *.swo
 *.sublime-*
 
-lib
-index.html
-index.js
 .ensime*
 
 nohup.out
@@ -45,3 +37,5 @@ nohup.out
 derby.log
 metastore_db/
 *.log
+
+access-token.js

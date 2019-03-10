@@ -102,6 +102,7 @@ sparkClusterName            := s"geotrellis-usbuildings"
 sparkEmrServiceRole         := "EMR_DefaultRole"
 sparkInstanceRole           := "EMR_EC2_DefaultRole"
 sparkJobFlowInstancesConfig := sparkJobFlowInstancesConfig.value.withEc2KeyName("geotrellis-emr")
+sparkS3LogUri               := Some("s3://geotrellis-test/usbuildings/logs")
 sparkEmrConfigs             := List(
   EmrConfig("spark").withProperties(
     "maximizeResourceAllocation" -> "true"
