@@ -17,7 +17,7 @@ The rasters are sampled directly from that location.
 
 ## Output
 
-Output is a set of `.csv` files with geometry WKT, feature id and min/max NED values under that geometry.
+Output is a vector tile layer that includes the min and max elevation under each geometry. 
 
 ## Inventory
 
@@ -31,15 +31,13 @@ Output is a set of `.csv` files with geometry WKT, feature id and min/max NED va
 ### Local
 
 ```
-sbt:geotrellis-wri> test:runMain usbuildings.BuildingElevationMain --features file:/User/Vermont.geojson --output file:/User/output-dir --sample 0.01
+sbt:geotrellis-usbuildings> test:runMain usbuildings.Main --buildings https://usbuildingdata.blob.core.windows.net/usbuildings-v1-1/RhodeIsland.zip --output file:/tmp/usbuildings-ri-v01
 ```
 
 ### EMR
 
-Before running review `sbtlighter` configuration in `build.sbt`, `reload` SBT session if modified.
+Before running review `sbtlighter` configuration in `build.sbt`, `reload` SBT session if modified. Ensure you replace the S3 url for the `--output` parameter to point to a valid S3 path.
 
 ```
-sbt:geotrellis-wri> sparkCreateCluster
-
-sbt:geotrellis-wri> sparkSubmitMain usbuildings.BuildingElevationMain --all-features --output s3://bucket/buildings/output
+sbt:geotrellis-usbuildings> sparkSubmit --all-buildings --buildings foo --output s3://bucket/path/prefix
 ```
