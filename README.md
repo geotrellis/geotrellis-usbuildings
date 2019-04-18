@@ -36,7 +36,16 @@ sbt:geotrellis-usbuildings> test:runMain usbuildings.Main --buildings https://us
 
 ### EMR
 
-Before running review `sbtlighter` configuration in `build.sbt`, `reload` SBT session if modified. Ensure you replace the S3 url for the `--output` parameter to point to a valid S3 path.
+At minimum, you'll need to change the following sbt lighter configuration variables in `build.sbt` 
+to resources within your AWS account before starting the EMR cluster:
+- `sparkS3JarFolder`: Must be an S3 path within the AWS account that the cluster can read/write to
+- `sparkS3LogUri`: Must be an S3 path within the AWS account that the cluster can read/write to
+- `sparkJobFlowInstancesConfig`: Must point to the EC2 key name you have access to
+
+Be sure to `reload` in sbt after making changes to `build.sbt`.
+
+When running the commands below, be sure you replace the S3 url for the `--output` parameter 
+to point to a valid S3 path that the EMR cluster has permissions to write to.
 
 ```
 sbt:geotrellis-usbuildings> sparkSubmit --all-buildings --buildings foo --output s3://bucket/path/prefix
