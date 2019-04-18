@@ -29,10 +29,8 @@ var popup = new mapboxgl.Popup({
 });
 
 map.on('load', function() {
-    // Add Mapillary sequence layer.
-    // https://www.mapillary.com/developer/tiles-documentation/#sequence-layer
     map.addLayer({
-        "id": "mapillary",
+        "id": "usbuildings",
         "type": "fill",
         "source": {
             "type": "vector",
@@ -53,28 +51,30 @@ map.on('load', function() {
     }, 'waterway-label');
 });
 
-map.on("mouseenter", "mapillary", function(e) {
-    map.getCanvas().style.cursor = 'pointer';
+map.on("mouseenter", "usbuildings", function(e) {
     if (e.features && e.features[0] && e.features[0].properties) {
         var feature = e.features[0];
         var props = feature.properties;
+        var coordinates = feature.geometry.coordinates[0][0].slice();
         var osm_info = {
             "min": props["elevation_min"],
             "max": props["elevation_max"]
         };
+        var html = '';
         if (props.errors) {
             osm_info["errors"] = props["errors"]
-            var coordinates = feature.geometry.coordinates[0][0].slice();
-            popup.setLngLat(coordinates);
-            popup.setHTML(props["errors"]);
-            popup.addTo(map);
-        }
+            html = props["errors"];
+        } else {
+            html = "Min: " + osm_info["min"] + "<br />Max:" + osm_info["max"];
+	}
+        popup.setLngLat(coordinates);
+        popup.setHTML(html);
+        popup.addTo(map);
         console.log(osm_info)
     }
 });
 
-map.on("mouseleave", "mapillary", function (e) {
-    map.getCanvas().style.cursor = '';
+map.on("mouseleave", "usbuildings", function (e) {
     popup.remove();
 });
 
