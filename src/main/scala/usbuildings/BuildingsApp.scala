@@ -26,7 +26,7 @@ class BuildingsApp(
         Building.readFromGeoJson(new URL(url))
       }
 
-  val partitioner = new HashPartitioner(partitions=allBuildings.getNumPartitions * 16)
+  val partitioner = new HashPartitioner(partitions=allBuildings.getNumPartitions * 16) //ravi commenting off partitions to let spark determine optimal
 
   // Split building geometries over skadi grid, each partition will intersect with N tiles
   val keyedBuildings: RDD[(SpatialKey, Building)] =
@@ -45,9 +45,11 @@ class BuildingsApp(
       val histPerTile =
         for {
           (tileKey, buildings) <- buildingsPartition.toArray.groupBy(_._1)
-          rasterSource = Either.catchNonFatal(Terrain.getRasterSource(tileKey))
+          //rasterSource = Either.catchNonFatal(Terrain.getRasterSource(tileKey)) //original terrain call
+          rasterSource = Either.catchNonFatal(Pluvial_2yr.getRasterSource(tileKey))
           (_, building) <- buildings
-          maybeRaster = rasterSource.flatMap(rs => Either.catchNonFatal(rs.read(building.footprint.envelope)))
+          maybeRaster = rasterSource.flatMap(rs => Either.catchNonFatal(rs.read(building.footprint.envelope))) //this is original. Works with wgs84 data source.
+          //maybeRaster = rasterSource.flatMap(rs => Either.catchNonFatal(rs.read(building.footprint.envelope.reproject(LatLng,WebMercator))))
         } yield {
           maybeRaster match {
             case Left(e: Throwable) => (building.id, building.withError(e.toString))
