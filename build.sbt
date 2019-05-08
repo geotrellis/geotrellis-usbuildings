@@ -114,9 +114,9 @@ sparkEmrBootstrap := List(
                   "s3://geotrellis-test/usbuildings",
                   "v1.0"))
 sparkS3JarFolder := "s3://geotrellis-test/usbuildings/jars"
-sparkInstanceCount := 20
-sparkMasterType := "m4.xlarge"
-sparkCoreType := "m4.xlarge"
+sparkInstanceCount := 21
+sparkMasterType := "m5.2xlarge"
+sparkCoreType := "m5.2xlarge"
 sparkMasterPrice := Some(0.5)
 sparkCorePrice := Some(0.5)
 sparkClusterName := s"geotrellis-usbuildings"
@@ -135,6 +135,8 @@ sparkEmrConfigs := List(
     "spark.shuffle.service.enabled" -> "true",
     "spark.shuffle.compress" -> "true",
     "spark.shuffle.spill.compress" -> "true",
+    "spark.dynamicAllocation.executorIdleTimeout" -> "1200", //ravi adding this custom because excecutors are timing out.
+    //"spark.default.parallelism" -> "1280", //ravi adding this to try speed up
     "spark.rdd.compress" -> "true",
     "spark.driver.extraJavaOptions" -> "-Djava.library.path=/usr/local/lib",
     "spark.executor.extraJavaOptions" -> "-XX:+UseParallelGC -Dgeotrellis.s3.threads.rdd.write=64 -Djava.library.path=/usr/local/lib",
