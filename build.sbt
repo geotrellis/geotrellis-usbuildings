@@ -72,8 +72,8 @@ Test / fork := true
 Test / parallelExecution := false
 Test / testOptions += Tests.Argument("-oD")
 Test / javaOptions ++= Seq("-Xms1024m",
-                           "-Xmx8144m",
-                           "-Djava.library.path=/usr/local/lib")
+  "-Xmx8144m",
+  "-Djava.library.path=/usr/local/lib")
 
 // Settings for sbt-assembly plugin which builds fat jars for spark-submit
 assemblyMergeStrategy in assembly := {
@@ -87,12 +87,12 @@ assemblyMergeStrategy in assembly := {
         MergeStrategy.concat
       // Concatenate these to keep JAI happy.
       case ("javax.media.jai.registryFile.jai" :: Nil) |
-          ("registryFile.jai" :: Nil) | ("registryFile.jaiext" :: Nil) =>
+           ("registryFile.jai" :: Nil) | ("registryFile.jaiext" :: Nil) =>
         MergeStrategy.concat
       case (name :: Nil) => {
         // Must exclude META-INF/*.([RD]SA|SF) to avoid "Invalid signature file digest for Manifest main attributes" exception.
         if (name.endsWith(".RSA") || name.endsWith(".DSA") || name.endsWith(
-              ".SF"))
+          ".SF"))
           MergeStrategy.discard
         else
           MergeStrategy.first
@@ -110,10 +110,10 @@ sparkAwsRegion := "us-east-1"
 sparkEmrApplications := Seq("Spark", "Zeppelin", "Ganglia")
 sparkEmrBootstrap := List(
   BootstrapAction("Install GDAL + dependencies",
-                  "s3://geotrellis-test/usbuildings/bootstrap.sh",
-                  "s3://geotrellis-test/usbuildings",
-                  "v1.0"))
-sparkS3JarFolder := "s3://geotrellis-test/usbuildings/jars"
+    "s3://dewberry-demo/bats/geotrellis/usbuildings/bootstrap.sh",
+    "s3://dewberry-demo/bats/geotrellis/usbuildings",
+    "v1.0"))
+sparkS3JarFolder := "s3://dewberry-demo/bats/geotrellis/usbuildings/jars"
 sparkInstanceCount := 21
 sparkMasterType := "m5.2xlarge"
 sparkCoreType := "m5.2xlarge"
@@ -123,8 +123,8 @@ sparkClusterName := s"geotrellis-usbuildings"
 sparkEmrServiceRole := "EMR_DefaultRole"
 sparkInstanceRole := "EMR_EC2_DefaultRole"
 sparkJobFlowInstancesConfig := sparkJobFlowInstancesConfig.value.withEc2KeyName(
-  "geotrellis-emr")
-sparkS3LogUri := Some("s3://geotrellis-test/usbuildings/logs")
+  "AzaveaKeyPair")
+sparkS3LogUri := Some("s3://dewberry-demo/bats/geotrellis/usbuildings/logs")
 sparkEmrConfigs := List(
   EmrConfig("spark").withProperties(
     "maximizeResourceAllocation" -> "true"
@@ -151,3 +151,5 @@ sparkEmrConfigs := List(
     "yarn.nodemanager.pmem-check-enabled" -> "false"
   )
 )
+
+//default # cores = 320 for 20 m5.2xlarge
