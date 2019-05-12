@@ -119,6 +119,9 @@ sparkMasterType := "m5.2xlarge"
 sparkCoreType := "m5.2xlarge"
 sparkMasterPrice := Some(0.5)
 sparkCorePrice := Some(0.5)
+sparkCoreEbsSize := Some(800)
+sparkMasterEbsSize := Some(200)
+
 //Cluster name
 sparkClusterName := s"geotrellis-calTest"
 sparkEmrServiceRole := "EMR_DefaultRole"
