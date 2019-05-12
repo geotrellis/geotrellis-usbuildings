@@ -1,6 +1,6 @@
 import Dependencies._
 
-name := "geotrellis-usbuildings"
+name := "geotrellis-calTest"
 
 scalaVersion := Version.scala
 scalaVersion in ThisBuild := Version.scala
@@ -108,23 +108,24 @@ import sbtlighter._
 sparkEmrRelease := "emr-5.13.0"
 sparkAwsRegion := "us-east-1"
 sparkEmrApplications := Seq("Spark", "Zeppelin", "Ganglia")
-sparkEmrBootstrap := List(
-  BootstrapAction("Install GDAL + dependencies",
-    "s3://dewberry-demo/bats/geotrellis/usbuildings/bootstrap.sh",
-    "s3://dewberry-demo/bats/geotrellis/usbuildings",
-    "v1.0"))
+sparkEmrBootstrap := List(BootstrapAction("Install GDAL + dependencies",
+  "s3://geotrellis-test/usbuildings/bootstrap.sh",
+  "s3://geotrellis-test/usbuildings",
+  "v1.0"))
+//Add job titile
 sparkS3JarFolder := "s3://dewberry-demo/bats/geotrellis/usbuildings/jars"
 sparkInstanceCount := 21
 sparkMasterType := "m5.2xlarge"
 sparkCoreType := "m5.2xlarge"
 sparkMasterPrice := Some(0.5)
 sparkCorePrice := Some(0.5)
-sparkClusterName := s"geotrellis-usbuildings"
+//Cluster name
+sparkClusterName := s"geotrellis-calTest"
 sparkEmrServiceRole := "EMR_DefaultRole"
 sparkInstanceRole := "EMR_EC2_DefaultRole"
 sparkJobFlowInstancesConfig := sparkJobFlowInstancesConfig.value.withEc2KeyName(
   "AzaveaKeyPair")
-sparkS3LogUri := Some("s3://dewberry-demo/bats/geotrellis/usbuildings/logs")
+sparkS3LogUri := Some("s3://dewberry-demo/bats/geotrellis/calTest/logs")
 sparkEmrConfigs := List(
   EmrConfig("spark").withProperties(
     "maximizeResourceAllocation" -> "true"
@@ -135,8 +136,9 @@ sparkEmrConfigs := List(
     "spark.shuffle.service.enabled" -> "true",
     "spark.shuffle.compress" -> "true",
     "spark.shuffle.spill.compress" -> "true",
-    "spark.dynamicAllocation.executorIdleTimeout" -> "1200", //ravi adding this custom because excecutors are timing out.
-    //"spark.default.parallelism" -> "1280", //ravi adding this to try speed up
+    "spark.dynamicAllocation.executorIdleTimeout" -> "1200", //ravi adding this custom because executors are timing out.
+    //Partition scheme (test1 = 1280)
+    "spark.default.parallelism" -> "960", //Testing 960 partitions for 106 Grids at ~2GB/grid slawler
     "spark.rdd.compress" -> "true",
     "spark.driver.extraJavaOptions" -> "-Djava.library.path=/usr/local/lib",
     "spark.executor.extraJavaOptions" -> "-XX:+UseParallelGC -Dgeotrellis.s3.threads.rdd.write=64 -Djava.library.path=/usr/local/lib",
@@ -153,3 +155,5 @@ sparkEmrConfigs := List(
 )
 
 //default # cores = 320 for 20 m5.2xlarge
+
+//Init Cluster command: sparkSubmitMain usbuildings.Main
