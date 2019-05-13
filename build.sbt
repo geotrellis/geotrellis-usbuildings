@@ -105,7 +105,7 @@ assemblyMergeStrategy in assembly := {
 // Settings from sbt-lighter plugin that will automate creating and submitting this job to EMR
 import sbtlighter._
 
-sparkEmrRelease := "emr-5.13.0"
+sparkEmrRelease := "emr-5.20.0"
 sparkAwsRegion := "us-east-1"
 sparkEmrApplications := Seq("Spark", "Zeppelin", "Ganglia")
 sparkEmrBootstrap := List(BootstrapAction("Install GDAL + dependencies",
@@ -123,7 +123,7 @@ sparkCoreEbsSize := Some(800)
 sparkMasterEbsSize := Some(200)
 
 //Cluster name
-sparkClusterName := s"geotrellis-calTest"
+sparkClusterName := s"geotrellis-calTest - echeipesh"
 sparkEmrServiceRole := "EMR_DefaultRole"
 sparkInstanceRole := "EMR_EC2_DefaultRole"
 sparkJobFlowInstancesConfig := sparkJobFlowInstancesConfig.value.withEc2KeyName(
@@ -144,7 +144,7 @@ sparkEmrConfigs := List(
     "spark.default.parallelism" -> "960", //Testing 960 partitions for 106 Grids at ~2GB/grid slawler
     "spark.rdd.compress" -> "true",
     "spark.driver.extraJavaOptions" -> "-Djava.library.path=/usr/local/lib",
-    "spark.executor.extraJavaOptions" -> "-XX:+UseParallelGC -Dgeotrellis.s3.threads.rdd.write=64 -Djava.library.path=/usr/local/lib",
+    "spark.executor.extraJavaOptions" -> "-XX:+UseParallelGC -Djava.library.path=/usr/local/lib",
     "spark.executorEnv.LD_LIBRARY_PATH" -> "/usr/local/lib"
   ),
   EmrConfig("spark-env").withProperties(
