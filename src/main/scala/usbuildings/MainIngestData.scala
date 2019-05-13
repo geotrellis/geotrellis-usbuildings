@@ -9,7 +9,7 @@ import geotrellis.raster.MultibandTile
 import geotrellis.raster.resample.Bilinear
 import geotrellis.spark.io.index.ZCurveKeyIndexMethod
 import geotrellis.spark.io.kryo.KryoRegistrator
-import geotrellis.spark.io.s3.{S3AttributeStore, S3GeoTiffRDD, S3LayerManager, S3LayerWriter}
+import geotrellis.spark.io.s3.{S3AttributeStore, S3GeoTiffRDD, S3LayerManager, S3LayerWriter, S3Client, AmazonS3Client}
 import geotrellis.spark.pyramid.Pyramid
 import geotrellis.spark.tiling.{FloatingLayoutScheme, ZoomedLayoutScheme}
 import geotrellis.spark.{LayerId, MultibandTileLayerRDD, SpatialKey, TileLayerMetadata}
@@ -18,6 +18,13 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoSerializer
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
+import com.amazonaws.retry.PredefinedRetryPolicies
+import com.amazonaws.auth._
+import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion
+import com.amazonaws.retry.PredefinedRetryPolicies
+import com.amazonaws.services.s3.model._
+
+
 //import org.apache.spark._
 //import geotrellis.spark.tiling._
 import geotrellis.raster._
@@ -25,6 +32,7 @@ import geotrellis.raster.io._
 import geotrellis.spark.io._
 import geotrellis.spark.{Metadata, _}
 import spray.json.DefaultJsonProtocol._
+
 
 import scala.util.Properties
 
@@ -76,7 +84,22 @@ object MainIngestData extends CommandApp(
       def run(implicit sc: SparkContext) = {
         val layoutScheme = ZoomedLayoutScheme(WebMercator, tileSize = 256)
         var zoom: Int = 6 //dummy low value
-        val inputRDD: RDD[(ProjectedExtent, MultibandTile)] = S3GeoTiffRDD.spatialMultiband(bucketInp, pathInp) //pluvial test
+
+        val getS3Client: () => S3Client = { () =>
+          val config = {
+            val config = new com.amazonaws.ClientConfiguration
+            config.setMaxConnections(64)
+            config.setMaxErrorRetry(16)
+            config.setRetryPolicy(PredefinedRetryPolicies.getDefaultRetryPolicyWithCustomMaxRetries(32))
+            // Use AWS SDK default time-out settings before changing
+            config
+          }
+          AmazonS3Client(DefaultAWSCredentialsProviderChain.getInstance(), config)
+        }
+
+        val inputRDD: RDD[(ProjectedExtent, MultibandTile)] = S3GeoTiffRDD.spatialMultiband(bucketInp, pathInp,
+          options = S3GeoTiffRDD.Options.DEFAULT.copy(getS3Client = getS3Client)) //pluvial test
+
         val reprojected: RDD[(SpatialKey, MultibandTile)] with Metadata[TileLayerMetadata[SpatialKey]] = {
           val (_, metadata) = TileLayerMetadata.fromRDD(inputRDD, FloatingLayoutScheme(512))
           val inputTiledRDD =
